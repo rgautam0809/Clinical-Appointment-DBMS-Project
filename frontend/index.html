@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Appointment Scheduling System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>🏥 ClinicCare</h1>
+                <p>Appointment Scheduling System</p>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn" onclick="showConnectionModal()" id="dbStatusBtn">🔴 Connect Database</button>
+                <button class="nav-btn active" onclick="showSection('booking')">Book Appointment</button>
+                <button class="nav-btn" onclick="showSection('appointments')">View Appointments</button>
+                <button class="nav-btn" onclick="showSection('statistics')">Statistics</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" class="alert-container"></div>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Booking Section -->
+        <section id="bookingSection" class="section active">
+            <h2 class="section-title">Book New Appointment</h2>
+            
+            <form id="bookingForm" class="form">
+                <div class="form-grid">
+                    <!-- Doctor Selection -->
+                    <div class="form-group">
+                        <label for="doctorSelect" class="form-label">Select Doctor *</label>
+                        <select id="doctorSelect" class="form-control" required>
+                            <option value="">-- Choose a Doctor --</option>
+                        </select>
+                        <div id="doctorInfo" class="info-text"></div>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="form-group">
+                        <label for="appointmentDate" class="form-label">Appointment Date *</label>
+                        <input type="date" id="appointmentDate" class="form-control" required>
+                    </div>
+
+                    <!-- Time Slot Selection -->
+                    <div class="form-group">
+                        <label for="timeSlotSelect" class="form-label">Available Time Slot *</label>
+                        <select id="timeSlotSelect" class="form-control" required disabled>
+                            <option value="">-- Select Date First --</option>
+                        </select>
+                        <div id="slotInfo" class="info-text"></div>
+                    </div>
+
+                    <!-- Patient Selection -->
+                    <div class="form-group">
+                        <label for="patientSelect" class="form-label">Select Patient *</label>
+                        <select id="patientSelect" class="form-control" required>
+                            <option value="">-- Choose a Patient --</option>
+                        </select>
+                        <button type="button" class="btn-secondary btn-small" onclick="showNewPatientForm()">+ New Patient</button>
+                    </div>
+                </div>
+
+                <!-- New Patient Form (Hidden by default) -->
+                <div id="newPatientForm" class="form-section hidden">
+                    <h3>Register New Patient</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="newPatientName" class="form-label">Full Name *</label>
+                            <input type="text" id="newPatientName" class="form-control" placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPatientEmail" class="form-label">Email *</label>
+                            <input type="email" id="newPatientEmail" class="form-control" placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPatientPhone" class="form-label">Phone *</label>
+                            <input type="tel" id="newPatientPhone" class="form-control" placeholder="+1-555-0000">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPatientDOB" class="form-label">Date of Birth *</label>
+                            <input type="date" id="newPatientDOB" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPatientAddress" class="form-label">Address</label>
+                        <textarea id="newPatientAddress" class="form-control" rows="2" placeholder="Full address"></textarea>
+                    </div>
+                    <button type="button" class="btn-primary" onclick="registerPatient()">Register Patient</button>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-group">
+                    <label for="appointmentNotes" class="form-label">Notes / Reason for Visit</label>
+                    <textarea id="appointmentNotes" class="form-control" rows="3" placeholder="Describe the reason for your appointment..."></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary btn-large">Book Appointment</button>
+                    <button type="reset" class="btn-secondary btn-large">Clear Form</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- View Appointments Section -->
+        <section id="appointmentsSection" class="section">
+            <h2 class="section-title">Manage Appointments</h2>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Filter by Doctor:</label>
+                    <select id="filterDoctor" class="form-control" onchange="loadAppointments()">
+                        <option value="">All Doctors</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Filter by Date:</label>
+                    <input type="date" id="filterDate" class="form-control" onchange="loadAppointments()">
+                </div>
+                <div class="filter-group">
+                    <label>Filter by Status:</label>
+                    <select id="filterStatus" class="form-control" onchange="loadAppointments()">
+                        <option value="">All Status</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+
+            <!-- Appointments Table -->
+            <div class="table-container">
+                <table id="appointmentsTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Doctor</th>
+                            <th>Patient</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center">Loading appointments...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section id="statisticsSection" class="section">
+            <h2 class="section-title">Appointment Statistics</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value" id="totalAppointments">0</div>
+                    <div class="stat-label">Total Appointments</div>
+                </div>
+                <div class="stat-card scheduled">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-value" id="scheduledAppointments">0</div>
+                    <div class="stat-label">Scheduled</div>
+                </div>
+                <div class="stat-card completed">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="completedAppointments">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card cancelled">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-value" id="cancelledAppointments">0</div>
+                    <div class="stat-label">Cancelled</div>
+                </div>
+            </div>
+
+            <!-- Conflict Detection Demo -->
+            <div class="demo-section">
+                <h3>Time Conflict Detection Demo</h3>
+                <p>This section demonstrates the database's ability to detect and prevent time conflicts.</p>
+                
+                <div class="demo-box">
+                    <h4>How It Works:</h4>
+                    <ul>
+                        <li>✅ <strong>Database Triggers:</strong> Automatically prevent double booking at the database level</li>
+                        <li>✅ <strong>Stored Procedures:</strong> Check for time slot overlaps before booking</li>
+                        <li>✅ <strong>Backend Validation:</strong> API checks for conflicts before inserting/updating</li>
+                        <li>✅ <strong>Frontend Alerts:</strong> Real-time conflict notifications to users</li>
+                    </ul>
+                </div>
+
+                <div class="demo-box">
+                    <h4>Conflict Scenarios Tested:</h4>
+                    <ol>
+                        <li>Attempting to book same doctor at overlapping times</li>
+                        <li>Updating appointment to a conflicting time slot</li>
+                        <li>Multiple patients booking same slot (only first succeeds)</li>
+                        <li>Cancelled appointments freeing up time slots</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Database Connection Modal -->
+    <div id="connectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔌 Connect to Database</h3>
+                <button class="modal-close" onclick="closeConnectionModal()">&times;</button>
+            </div>
+            <form id="connectionForm">
+                <div class="form-group">
+                    <label for="dbHost" class="form-label">Host *</label>
+                    <input type="text" id="dbHost" class="form-control" placeholder="localhost or 127.0.0.1" value="localhost" required>
+                    <small class="info-text">Use 127.0.0.1 if localhost doesn't work</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dbPort" class="form-label">Port *</label>
+                    <input type="number" id="dbPort" class="form-control" placeholder="3306" value="3306" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dbUser" class="form-label">Username *</label>
+                    <input type="text" id="dbUser" class="form-control" placeholder="root" value="root" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dbPassword" class="form-label">Password</label>
+                    <input type="password" id="dbPassword" class="form-control" placeholder="Your MySQL/MariaDB password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dbName" class="form-label">Database Name *</label>
+                    <input type="text" id="dbName" class="form-control" placeholder="clinic_appointments" value="clinic_appointments" required>
+                </div>
+                
+                <div id="connectionAlert" class="alert hidden"></div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeConnectionModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="connectBtn">🔌 Connect Database</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Appointment Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Appointment</h3>
+                <button class="modal-close" onclick="closeUpdateModal()">&times;</button>
+            </div>
+            <form id="updateForm">
+                <input type="hidden" id="updateAppointmentId">
+                
+                <div class="form-group">
+                    <label for="updateDoctor" class="form-label">Doctor</label>
+                    <select id="updateDoctor" class="form-control" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="updatePatient" class="form-label">Patient</label>
+                    <select id="updatePatient" class="form-control" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="updateDate" class="form-label">New Date *</label>
+                    <input type="date" id="updateDate" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="updateStartTime" class="form-label">New Start Time *</label>
+                    <input type="time" id="updateStartTime" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="updateEndTime" class="form-label">New End Time *</label>
+                    <input type="time" id="updateEndTime" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="updateStatus" class="form-label">Status</label>
+                    <select id="updateStatus" class="form-control">
+                        <option value="scheduled">Scheduled</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="updateNotes" class="form-label">Notes</label>
+                    <textarea id="updateNotes" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div id="updateConflictAlert" class="alert alert-danger hidden"></div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeUpdateModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Update Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 ClinicCare - DBMS Mini Project | Clinic Appointment Scheduling System</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+    
+    <!-- Inline script to ensure modal functions are available -->
+    <script>
+        // Ensure modal functions are globally available immediately
+        function showConnectionModal() {
+            console.log('showConnectionModal called');
+            const modal = document.getElementById('connectionModal');
+            console.log('Modal element:', modal);
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+                console.log('Modal opened');
+            } else {
+                console.error('Modal element not found!');
+            }
+        }
+        
+        function closeConnectionModal() {
+            const modal = document.getElementById('connectionModal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                const form = document.getElementById('connectionForm');
+                if (form) form.reset();
+                const alert = document.getElementById('connectionAlert');
+                if (alert) alert.classList.add('hidden');
+            }
+        }
+        
+        // Make sure functions are on window object
+        window.showConnectionModal = showConnectionModal;
+        window.closeConnectionModal = closeConnectionModal;
+        
+        console.log('Modal functions initialized');
+    </script>
+</body>
+</html>
