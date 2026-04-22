@@ -77,17 +77,14 @@ DBMS-Project/
 ├── backend/
 │   ├── package.json                  # Node.js dependencies
 │   ├── server.js                     # Express server setup
-│   ├── .env.example                  # Environment variables template
 │   └── routes/
 │       ├── appointments.js           # Appointment CRUD + conflict detection
 │       ├── doctors.js                # Doctor management
 │       └── patients.js               # Patient management
 ├── frontend/
-│   ├── index.html                    # Main web interface
-│   ├── css/
-│   │   └── style.css                 # Complete styling
-│   └── js/
-│       └── app.js                    # Frontend logic & API integration
+│   ├── index.html                # Main web interface
+│   │── style.css                 # Complete styling
+│   └── app.js                    # Frontend logic & API integration
 └── README.md                         # This file
 ```
 
@@ -173,23 +170,13 @@ cd backend
 
 # Install dependencies
 npm install
-
-# Create .env file from example
-copy .env.example .env
-# (On Mac/Linux: cp .env.example .env)
-
-# Edit .env with your MySQL credentials
-# DB_HOST=localhost
-# DB_USER=root
-# DB_PASSWORD=your_password
-# DB_NAME=clinic_appointments
 ```
 
 ### Step 3: Start the Application
 
 ```bash
 # Start the server
-npm start
+cd backend; npm start
 
 # Server will run on http://localhost:3000
 ```
