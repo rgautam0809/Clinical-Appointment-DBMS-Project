@@ -1,7 +1,8 @@
 // ============================================
 // Global Variables
 // ============================================
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = '/api'; // ✅ FIXED (no localhost:3000)
+
 let doctorsList = [];
 let patientsList = [];
 let isDatabaseConnected = false;
@@ -14,15 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
-    // Set minimum date to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('appointmentDate').min = today;
     document.getElementById('updateDate').min = today;
-    
-    // Check database connection status
+
     await checkConnectionStatus();
-    
-    // If connected, load initial data
+
     if (isDatabaseConnected) {
         await Promise.all([
             loadDoctors(),
@@ -30,25 +28,16 @@ async function initializeApp() {
             loadAppointments()
         ]);
     }
-    
-    // Setup form event listeners
+
     setupEventListeners();
 }
 
 function setupEventListeners() {
-    // Booking form submission
     document.getElementById('bookingForm').addEventListener('submit', handleBooking);
-    
-    // Update form submission
     document.getElementById('updateForm').addEventListener('submit', handleUpdate);
-    
-    // Doctor selection change
     document.getElementById('doctorSelect').addEventListener('change', handleDoctorChange);
-    
-    // Date selection change
     document.getElementById('appointmentDate').addEventListener('change', handleDateChange);
 }
-
 // ============================================
 // Navigation
 // ============================================
@@ -84,72 +73,57 @@ function showSection(sectionName) {
 // Load all doctors
 async function loadDoctors() {
     try {
-        const response = await fetch(`${API_BASE_URL}/doctors`);
-        const result = await response.json();
-        
-        if (result.success) {
-            doctorsList = result.data;
+        const res = await fetch(`${API_BASE_URL}/doctors`);
+        const data = await res.json();
+
+        if (data.success) {
+            doctorsList = data.data;
             populateDoctorDropdowns();
-            populateFilterDropdowns();
         }
-    } catch (error) {
+    } catch (err) {
         showAlert('Error loading doctors', 'danger');
-        console.error('Error:', error);
     }
 }
 
-// Load all patients
 async function loadPatients() {
     try {
-        const response = await fetch(`${API_BASE_URL}/patients`);
-        const result = await response.json();
-        
-        if (result.success) {
-            patientsList = result.data;
+        const res = await fetch(`${API_BASE_URL}/patients`);
+        const data = await res.json();
+
+        if (data.success) {
+            patientsList = data.data;
             populatePatientDropdown();
         }
-    } catch (error) {
+    } catch (err) {
         showAlert('Error loading patients', 'danger');
-        console.error('Error:', error);
     }
 }
 
-// Load appointments with optional filters
 async function loadAppointments() {
     try {
         const doctorId = document.getElementById('filterDoctor').value;
         const date = document.getElementById('filterDate').value;
         const status = document.getElementById('filterStatus').value;
-        
-        let url = `${API_BASE_URL}/appointments?`;
-        if (doctorId) url += `doctor_id=${doctorId}&`;
-        if (date) url += `date=${date}&`;
-        if (status) url += `status=${status}&`;
-        
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.success) {
-            displayAppointments(result.data);
-        }
-    } catch (error) {
-        showAlert('Error loading appointments', 'danger');
-        console.error('Error:', error);
-    }
-}
 
-// Load statistics
-async function loadStatistics() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/appointments/stats`);
-        const result = await response.json();
-        
-        if (result.success) {
-            displayStatistics(result.data);
+        let url = `${API_BASE_URL}/appointments`;
+        const params = new URLSearchParams();
+
+        if (doctorId) params.append('doctor_id', doctorId);
+        if (date) params.append('date', date);
+        if (status) params.append('status', status);
+
+        if (params.toString()) {
+            url += `?${params.toString()}`;
         }
-    } catch (error) {
-        showAlert('Error loading statistics', 'danger');
-        console.error('Error:', error);
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.success) {
+            displayAppointments(data.data);
+        }
+    } catch (err) {
+        showAlert('Error loading appointments', 'danger');
     }
 }
 

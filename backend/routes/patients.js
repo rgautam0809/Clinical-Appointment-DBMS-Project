@@ -2,12 +2,20 @@ const express = require('express');
 const router = express.Router();
 
 const createRoutes = (dbInstance) => {
-    const db = dbInstance;
+    const getDb = typeof dbInstance === 'function' ? dbInstance : () => dbInstance;
 
 // ============================================
 // GET /api/patients - Get all patients
 // ============================================
 router.get('/', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const query = `
         SELECT 
             patient_id,
@@ -41,6 +49,14 @@ router.get('/', (req, res) => {
 // GET /api/patients/:id - Get single patient
 // ============================================
 router.get('/:id', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const query = `
         SELECT * FROM patients WHERE patient_id = ?
     `;
@@ -72,6 +88,14 @@ router.get('/:id', (req, res) => {
 // POST /api/patients - Register new patient
 // ============================================
 router.post('/', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { name, email, phone, date_of_birth, address } = req.body;
     
     // Validation
@@ -123,6 +147,14 @@ router.post('/', (req, res) => {
 // PUT /api/patients/:id - Update patient
 // ============================================
 router.put('/:id', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { name, email, phone, date_of_birth, address } = req.body;
     const patientId = req.params.id;
     

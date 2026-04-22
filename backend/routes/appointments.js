@@ -45,12 +45,20 @@ const formatTime = (time) => {
 
 // Factory function to create routes with db instance
 const createRoutes = (dbInstance) => {
-    const db = dbInstance;
+    const getDb = typeof dbInstance === 'function' ? dbInstance : () => dbInstance;
 
 // ============================================
 // GET /api/appointments - Get all appointments
 // ============================================
 router.get('/', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { doctor_id, date, status } = req.query;
     
     let query = `
@@ -107,6 +115,14 @@ router.get('/', (req, res) => {
 // GET /api/appointments/:id - Get single appointment
 // ============================================
 router.get('/:id', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const query = `
         SELECT 
             a.*,
@@ -148,6 +164,14 @@ router.get('/:id', (req, res) => {
 // GET /api/appointments/available/:doctorId/:date - Get available time slots
 // ============================================
 router.get('/available/:doctorId/:date', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { doctorId, date } = req.params;
     
     const query = `
@@ -176,6 +200,14 @@ router.get('/available/:doctorId/:date', (req, res) => {
 // POST /api/appointments - Book new appointment
 // ============================================
 router.post('/', async (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { doctor_id, patient_id, appointment_date, start_time, end_time, notes } = req.body;
     
     // Validation
@@ -251,6 +283,14 @@ router.post('/', async (req, res) => {
 // PUT /api/appointments/:id - Update appointment
 // ============================================
 router.put('/:id', async (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { doctor_id, patient_id, appointment_date, start_time, end_time, status, notes } = req.body;
     const appointmentId = req.params.id;
     
@@ -358,6 +398,14 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/appointments/:id - Cancel appointment
 // ============================================
 router.delete('/:id', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const appointmentId = req.params.id;
     
     // Instead of deleting, we cancel the appointment
@@ -394,6 +442,14 @@ router.delete('/:id', (req, res) => {
 // GET /api/appointments/stats - Get appointment statistics
 // ============================================
 router.get('/stats', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const query = `
         SELECT 
             COUNT(*) as total,

@@ -2,12 +2,20 @@ const express = require('express');
 const router = express.Router();
 
 const createRoutes = (dbInstance) => {
-    const db = dbInstance;
+    const getDb = typeof dbInstance === 'function' ? dbInstance : () => dbInstance;
 
 // ============================================
 // GET /api/doctors - Get all doctors
 // ============================================
 router.get('/', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const query = `
         SELECT 
             doctor_id,
@@ -43,6 +51,14 @@ router.get('/', (req, res) => {
 // GET /api/doctors/:id - Get single doctor
 // ============================================
 router.get('/:id', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const query = `
         SELECT * FROM doctors WHERE doctor_id = ?
     `;
@@ -74,6 +90,14 @@ router.get('/:id', (req, res) => {
 // GET /api/doctors/:id/schedule - Get doctor's schedule
 // ============================================
 router.get('/:id/schedule', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { date } = req.query;
     
     let query = `
@@ -123,6 +147,14 @@ router.get('/:id/schedule', (req, res) => {
 // GET /api/doctors/:id/availability - Get doctor availability for a date
 // ============================================
 router.get('/:id/availability', (req, res) => {
+    const db = getDb();
+    if (!db) {
+        return res.status(400).json({
+            success: false,
+            message: 'Database not connected. Please connect first.'
+        });
+    }
+
     const { date } = req.query;
     
     if (!date) {
